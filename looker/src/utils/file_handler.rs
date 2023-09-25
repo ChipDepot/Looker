@@ -1,7 +1,7 @@
 use project_root::get_project_root;
 use std::env;
-use std::fs::{File, canonicalize};
-use std::path::{Path, PathBuf};
+use std::fs::File;
+use std::path::PathBuf;
 
 pub fn get_absolute_path(relative_path: &str) -> Result<PathBuf, std::io::Error> {
     let p_root = get_project_root()?;
@@ -13,7 +13,7 @@ pub fn get_absolute_path(relative_path: &str) -> Result<PathBuf, std::io::Error>
 
 pub fn load_file(path: &str) -> Result<File, std::io::Error> {
     let path = PathBuf::from(path);
-    return File::open(&path);
+    return File::open(&path);  
 }
 
 

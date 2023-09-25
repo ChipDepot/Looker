@@ -1,18 +1,31 @@
+mod axe;
 mod red;
 mod utils;
 
 #[macro_use]
 extern crate log;
 
-use red::connector::RedisConnector;
-use utils::{env_handler, env_keys};
+use red::listener::RedisListener;
+use utils::{env_handler, env_keys::PORT};
 
-fn main() {
-    // Set log level to debug so all things show up and start the logger
-    std::env::set_var("RUST_LOG", "debug");
+use axum::{Router, Server};
+use std::net::SocketAddr;
+use tokio::select;
+
+#[tokio::main]
+async fn main() {
+    // Start the logger and load the env variables
     env_logger::init();
-
-    // Load the env variables
+    // tracing_subscriber::fmt().json().init();
     env_handler::load_env(None);
 
+    tokio::spawn(async { RedisListener::new().listen() });
+
+    let app = Router::new().merge(axe::router());
+
+    let addr = SocketAddr::from(([0, 0, 0, 0], env_handler::get(PORT).unwrap()));
+    Server::bind(&addr)
+        .serve(app.into_make_service())
+        .await
+        .unwrap();
 }
