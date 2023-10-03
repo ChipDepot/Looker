@@ -10,7 +10,6 @@ use utils::{env_handler, env_keys::PORT};
 
 use axum::{Router, Server};
 use std::net::SocketAddr;
-use tokio::select;
 
 #[tokio::main]
 async fn main() {

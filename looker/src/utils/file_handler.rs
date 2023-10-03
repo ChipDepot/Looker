@@ -10,17 +10,14 @@ pub fn get_absolute_path(relative_path: &str) -> Result<PathBuf, std::io::Error>
     Ok(full_path)
 }
 
-
 pub fn load_file(path: &str) -> Result<File, std::io::Error> {
     let path = PathBuf::from(path);
-    return File::open(&path);  
+    return File::open(&path);
 }
-
 
 pub(super) fn file_exists(path: &PathBuf) -> bool {
     path.exists() && path.is_file()
 }
-
 
 fn get_argument(flag: &str) -> Result<String, String> {
     let args: Vec<String> = env::args().collect();

@@ -1,8 +1,9 @@
 extern crate redis;
-use redis::{Commands, ConnectionLike};
+use redis::{Commands, ConnectionLike, PubSubCommands};
 
-use crate::utils::env_keys::REDIS_URL;
+use crate::utils::env_keys::{REDIS_CHANNEL, REDIS_URL};
 use log::{info, warn};
+use std::env;
 
 pub(crate) struct RedisListener {
     connection: redis::Connection,
@@ -27,25 +28,21 @@ impl RedisListener {
 
     pub(crate) fn listen(&mut self) -> redis::RedisResult<()> {
         // let mut counter: usize = 0;
+        let queue_channel = env::var(REDIS_CHANNEL)
+            .unwrap_or_else(|err| panic!("Missing env var {}: {}", REDIS_CHANNEL, err));
 
-        self.connection.set(String::from("counter"), 0)?;
+        let mut pubsub_con = self.connection.as_pubsub();
+        pubsub_con.subscribe(&queue_channel)?;
 
         loop {
-            match self.connection.get("counter") {
-                Ok(response) => match response {
-                    redis::Value::Status(value) => info!("Response from redis: {}", value),
-                    redis::Value::Int(value) => info!("Response from redis: {}", value),
-                    redis::Value::Data(value) => {
-                        info!("Response from redis: {}", String::from_utf8_lossy(&value));
-                        self.connection.incr("counter", 1)?;
-                    }
-                    _ => warn!("Odd response from redis: {:?}", response),
-                },
-                Err(err) => warn!("Error from Redis: {}", err),
-            };
+            let message = pubsub_con.get_message().and_then(|msg| {
+                let bytes = msg.get_payload_bytes();
+                Ok(String::from_utf8_lossy(bytes).to_string())
+            })?;
+
+            info!("New message from redis: {}", message);
 
             // counter += 1;
-            // info!("We're at {}", counter);
 
             std::thread::sleep(std::time::Duration::from_secs(1));
         }

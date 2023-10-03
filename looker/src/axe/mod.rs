@@ -1,3 +1,5 @@
+pub mod decoder;
+
 use axum::{routing::get, Router};
 use log::info;
 
