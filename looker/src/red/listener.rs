@@ -1,11 +1,10 @@
 extern crate redis;
-use redis::{Commands, ConnectionLike, PubSubCommands};
 
 use crate::utils::env_keys::{REDIS_CHANNEL, REDIS_URL};
-use log::{info, warn};
+use log::info;
 use std::env;
 
-pub(crate) struct RedisListener {
+pub struct RedisListener {
     connection: redis::Connection,
 }
 
@@ -26,7 +25,7 @@ impl RedisListener {
         return RedisListener { connection: conn };
     }
 
-    pub(crate) fn listen(&mut self) -> redis::RedisResult<()> {
+    pub(crate) fn listen(&mut self, f: fn(String)) -> redis::RedisResult<()> {
         // let mut counter: usize = 0;
         let queue_channel = env::var(REDIS_CHANNEL)
             .unwrap_or_else(|err| panic!("Missing env var {}: {}", REDIS_CHANNEL, err));
@@ -40,7 +39,8 @@ impl RedisListener {
                 Ok(String::from_utf8_lossy(bytes).to_string())
             })?;
 
-            info!("New message from redis: {}", message);
+            info!("New message from redis: {}", &message);
+            f(message);
 
             // counter += 1;
 

@@ -1,3 +1,4 @@
+mod app;
 mod axe;
 mod red;
 mod utils;
@@ -18,7 +19,7 @@ async fn main() {
     // tracing_subscriber::fmt().json().init();
     env_handler::load_env(None);
 
-    tokio::spawn(async { RedisListener::new().listen() });
+    tokio::spawn(async { RedisListener::new().listen(|_| {}) });
 
     let app = Router::new().merge(axe::router());
 

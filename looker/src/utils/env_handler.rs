@@ -1,5 +1,5 @@
 use dotenv::dotenv;
-use log::{info, trace};
+use log::info;
 use std::env::{self, VarError};
 use std::fs::File;
 use std::io::{BufReader, BufWriter};
