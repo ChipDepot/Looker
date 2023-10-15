@@ -21,28 +21,29 @@ pub(crate) async fn get_location_context() -> Result<Location, reqwest::Error> {
         match response.status() {
             StatusCode::OK => {
                 return response.json().await;
-            },
+            }
             StatusCode::NOT_FOUND => {
                 info!(
                     "Waiting for Location Context for app {} from {}",
                     env_handler::get::<String>(APP_NAME).unwrap(),
                     &bran_endpoint
                 );
-            },
+            }
             StatusCode::SERVICE_UNAVAILABLE => {
                 warn!(
                     "Couldn't access {}. Is the service running?",
                     &bran_endpoint
                 );
-            },
+            }
             _ => {
-                warn!("Unexpected HTTP response {} from {}", response.status(), &bran_endpoint);
+                warn!(
+                    "Unexpected HTTP response {} from {}",
+                    response.status(),
+                    &bran_endpoint
+                );
             }
         }
-        
-
 
         tokio::time::sleep(tokio::time::Duration::from_secs(duration)).await;
-
     }
 }
