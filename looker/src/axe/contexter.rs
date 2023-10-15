@@ -39,8 +39,6 @@ pub(crate) async fn get_location_context() -> Result<Location, reqwest::Error> {
                 warn!("Unexpected HTTP response {} from {}", response.status(), &bran_endpoint);
             }
         }
-        
-
 
         tokio::time::sleep(tokio::time::Duration::from_secs(duration)).await;
 
