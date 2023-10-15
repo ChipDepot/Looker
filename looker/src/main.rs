@@ -19,7 +19,7 @@ async fn main() {
     // tracing_subscriber::fmt().json().init();
     env_handler::load_env(None);
 
-    let application_context = axe::get_location_context().await.unwrap();    
+    let _application_context = axe::get_location_context().await.unwrap();    
 
     tokio::spawn(async { RedisListener::new().listen(|_| {}) });
 
