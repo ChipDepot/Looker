@@ -1,6 +1,5 @@
 use project_root::get_project_root;
 use std::env;
-use std::fs::File;
 use std::path::PathBuf;
 
 pub fn get_absolute_path(relative_path: &str) -> Result<PathBuf, std::io::Error> {
@@ -8,11 +7,6 @@ pub fn get_absolute_path(relative_path: &str) -> Result<PathBuf, std::io::Error>
     let full_path = p_root.join(relative_path);
 
     Ok(full_path)
-}
-
-pub fn load_file(path: &str) -> Result<File, std::io::Error> {
-    let path = PathBuf::from(path);
-    return File::open(&path);
 }
 
 pub(super) fn file_exists(path: &PathBuf) -> bool {

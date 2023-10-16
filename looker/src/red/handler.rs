@@ -1,3 +1,1 @@
-struct RedisHandler;
 
-impl RedisHandler {}

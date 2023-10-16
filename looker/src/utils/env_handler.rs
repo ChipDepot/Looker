@@ -53,7 +53,7 @@ pub(crate) fn load_env(path: Option<&str>) {
 pub(crate) fn get<T: std::str::FromStr>(key: &str) -> Result<T, VarError> {
     let var = env::var(key)?;
     match var.parse::<T>() {
-        Ok(K) => Ok(K),
+        Ok(k) => Ok(k),
         Err(_) => Err(VarError::NotPresent),
     }
 }
