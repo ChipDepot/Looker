@@ -16,10 +16,9 @@ use std::net::SocketAddr;
 async fn main() {
     // Start the logger and load the env variables
     env_logger::init();
-    // tracing_subscriber::fmt().json().init();
     env_handler::load_env(None);
 
-    let _application_context = axe::get_location_context().await.unwrap();    
+    let _application_context = axe::get_location_context().await.unwrap();
 
     tokio::spawn(async { RedisListener::new().listen(|_| {}) });
 
