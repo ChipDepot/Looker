@@ -1,5 +1,5 @@
-use serde_json::Value;
+pub(crate) trait Listener {
+    fn listen(&mut self, func: fn(String));
 
-pub(super) trait FromJson {
-    fn from_json(value: Value) -> Self;
+    fn process_message(&mut self, message: &str);
 }

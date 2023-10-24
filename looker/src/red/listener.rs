@@ -1,8 +1,14 @@
 extern crate redis;
 
-use crate::utils::env_keys::{REDIS_CHANNEL, REDIS_URL};
+use crate::{
+    app::traits::Listener,
+    utils::{
+        env_handler,
+        env_keys::{CONTEXT_INTERVAL, REDIS_CHANNEL, REDIS_URL},
+    },
+};
 use log::info;
-use std::env;
+use std::{thread, time};
 
 pub struct RedisListener {
     connection: redis::Connection,
@@ -10,6 +16,8 @@ pub struct RedisListener {
 
 impl RedisListener {
     pub fn new() -> Self {
+        let duration = env_handler::get(CONTEXT_INTERVAL).unwrap_or(10);
+
         // Get the redis URL from the env vars
         let redis_url = dotenv::var(REDIS_URL).unwrap_or_else(|err| panic!("Missing {}", err));
         info!("Using redis url {}", &redis_url);
@@ -17,21 +25,41 @@ impl RedisListener {
         let redis_client = redis::Client::open(redis_url).unwrap_or_else(|err| panic!("{}", err));
 
         info!("Establising redis connection");
-        let conn = redis_client
-            .get_connection()
-            .unwrap_or_else(|err| panic!("{}", err));
-        info!("Created redis connector");
 
-        return RedisListener { connection: conn };
+        loop {
+            match redis_client.get_connection() {
+                Ok(k) => {
+                    info!("Created redis connector");
+                    return RedisListener { connection: k };
+                }
+                Err(e) => {
+                    warn!("Unable to stablish redis connection: {}", e.to_string());
+                    warn!("Retrying in {} seconds", &duration);
+                    thread::sleep(time::Duration::from_secs(duration));
+                }
+            };
+        }
     }
 
-    pub(crate) fn listen(&mut self, f: fn(String)) -> redis::RedisResult<()> {
-        // let mut counter: usize = 0;
-        let queue_channel = env::var(REDIS_CHANNEL)
+    pub(crate) fn listen<T: Listener>(&mut self, obj: &mut T) -> redis::RedisResult<()> {
+        let duration = env_handler::get::<u64>(CONTEXT_INTERVAL).unwrap_or(10);
+        let queue_channel = env_handler::get::<String>(REDIS_CHANNEL)
             .unwrap_or_else(|err| panic!("Missing env var {}: {}", REDIS_CHANNEL, err));
 
         let mut pubsub_con = self.connection.as_pubsub();
-        pubsub_con.subscribe(&queue_channel)?;
+
+        loop {
+            match pubsub_con.subscribe(&queue_channel) {
+                Ok(_) => break,
+                Err(e) => warn!(
+                    "Unable to stablish subscribe to channel {}: {}",
+                    &queue_channel,
+                    e.to_string()
+                ),
+            };
+            warn!("Retrying in {} seconds", &duration);
+            thread::sleep(time::Duration::from_secs(duration));
+        }
 
         loop {
             let message = pubsub_con.get_message().and_then(|msg| {
@@ -40,11 +68,7 @@ impl RedisListener {
             })?;
 
             info!("New message from redis: {}", &message);
-            f(message);
-
-            // counter += 1;
-
-            std::thread::sleep(std::time::Duration::from_secs(1));
+            obj.process_message(&message);
         }
     }
 }

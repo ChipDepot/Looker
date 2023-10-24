@@ -6,6 +6,8 @@ mod utils;
 #[macro_use]
 extern crate log;
 
+use app::traits::Listener;
+use paho_mqtt::message;
 use red::listener::RedisListener;
 use utils::{env_handler, env_keys::PORT};
 
@@ -18,9 +20,9 @@ async fn main() {
     env_logger::init();
     env_handler::load_env(None);
 
-    let _application_context = axe::get_location_context().await.unwrap();
+    let mut application = axe::get_location_context().await.unwrap();
 
-    tokio::spawn(async { RedisListener::new().listen(|_| {}) });
+    tokio::spawn(async move { RedisListener::new().listen(&mut application) });
 
     let app = Router::new().merge(axe::router());
 

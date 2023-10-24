@@ -1,11 +1,11 @@
 use reqwest::{Client, StatusCode};
-use starduck::location::Location;
+use starduck::application::Application;
 use url::Url;
 
 use crate::env_handler;
 use crate::utils::env_keys::{APP_NAME, BRAN_URL, CONTEXT_INTERVAL};
 
-pub(crate) async fn get_location_context() -> Result<Location, reqwest::Error> {
+pub(crate) async fn get_location_context() -> Result<Application, reqwest::Error> {
     let duration = env_handler::get(CONTEXT_INTERVAL).unwrap_or(10);
     let app_name = env_handler::get::<String>(APP_NAME).unwrap();
     let bran_endpoint = match env_handler::get::<Url>(BRAN_URL) {
