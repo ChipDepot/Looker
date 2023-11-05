@@ -8,7 +8,7 @@ extern crate log;
 
 use app::traits::Listener;
 use paho_mqtt::message;
-use red::listener::RedisListener;
+use red::redis::RedisListener;
 use utils::{env_handler, env_keys::PORT};
 
 use axum::{Router, Server};

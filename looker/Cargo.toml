@@ -10,8 +10,7 @@ starduck = { git = "https://github.com/ChipDepot/StarDuck.git", branch = "main" 
 
 project-root = "0.2.2"
 dotenv = "0.15"
-
-paho-mqtt = "0.12.1"
+paho-mqtt = "0.12.2"
 
 redis = "0.23"
 
