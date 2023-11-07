@@ -5,8 +5,7 @@ mod utils;
 
 #[macro_use]
 extern crate log;
-
-use app::traits::Listener;
+use crate::red::traits::Listener;
 use paho_mqtt::message;
 use red::redis::RedisListener;
 use utils::{env_handler, env_keys::PORT};

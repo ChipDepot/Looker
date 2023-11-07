@@ -2,12 +2,14 @@ extern crate redis;
 
 use crate::{
     app::traits::Processor,
+    red::traits::Listener,
     utils::{
         env_handler,
         env_keys::{CONTEXT_INTERVAL, REDIS_CHANNEL, REDIS_URL},
     },
 };
 use log::info;
+use redis::RedisError;
 use std::{thread, time};
 
 pub struct RedisListener {
@@ -40,8 +42,12 @@ impl RedisListener {
             };
         }
     }
+}
 
-    pub(crate) fn listen<T: Processor>(&mut self, obj: &mut T) -> redis::RedisResult<()> {
+impl Listener for RedisListener {
+    type K = RedisError;
+
+    fn listen<T: Processor>(&mut self, obj: &mut T) -> Result<(), Self::K> {
         let duration = env_handler::get::<u64>(CONTEXT_INTERVAL).unwrap_or(10);
         let queue_channel = env_handler::get::<String>(REDIS_CHANNEL)
             .unwrap_or_else(|err| panic!("Missing env var {}: {}", REDIS_CHANNEL, err));

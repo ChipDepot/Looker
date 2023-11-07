@@ -1,5 +1,7 @@
 use crate::app::traits::Processor;
 
-trait Listener {
-    fn listen<T: Processor, K>(&mut self, obj: &mut T) -> Result<(), K>;
+pub trait Listener {
+    type K;
+
+    fn listen<T: Processor>(&mut self, obj: &mut T) -> Result<(), Self::K>;
 }
