@@ -5,7 +5,7 @@ use crate::{
     red::traits::Listener,
     utils::{
         env_handler,
-        env_keys::{CONTEXT_INTERVAL, REDIS_CHANNEL, REDIS_URL},
+        env_keys::{CHANNEL, REDIS_URL, RETRY_CONNECTION_INTERVAL},
     },
 };
 use log::info;
@@ -18,7 +18,7 @@ pub struct RedisListener {
 
 impl RedisListener {
     pub fn new() -> Self {
-        let duration = env_handler::get(CONTEXT_INTERVAL).unwrap_or(10);
+        let duration = env_handler::get(RETRY_CONNECTION_INTERVAL).unwrap_or(10);
 
         // Get the redis URL from the env vars
         let redis_url = dotenv::var(REDIS_URL).unwrap_or_else(|err| panic!("Missing {}", err));
@@ -26,7 +26,7 @@ impl RedisListener {
 
         let redis_client = redis::Client::open(redis_url).unwrap_or_else(|err| panic!("{}", err));
 
-        info!("Establising redis connection");
+        info!("Establising redis connection...");
 
         loop {
             match redis_client.get_connection() {
@@ -48,9 +48,9 @@ impl Listener for RedisListener {
     type K = RedisError;
 
     fn listen<T: Processor>(&mut self, obj: &mut T) -> Result<(), Self::K> {
-        let duration = env_handler::get::<u64>(CONTEXT_INTERVAL).unwrap_or(10);
-        let queue_channel = env_handler::get::<String>(REDIS_CHANNEL)
-            .unwrap_or_else(|err| panic!("Missing env var {}: {}", REDIS_CHANNEL, err));
+        let duration = env_handler::get::<u64>(RETRY_CONNECTION_INTERVAL).unwrap_or(10);
+        let queue_channel = env_handler::get::<String>(CHANNEL)
+            .unwrap_or_else(|err| panic!("Missing env var {}: {}", CHANNEL, err));
 
         let mut pubsub_con = self.connection.as_pubsub();
 
