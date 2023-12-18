@@ -1,17 +1,17 @@
 mod app;
 mod axe;
-mod red;
+mod eyes;
 mod utils;
 
 #[macro_use]
 extern crate log;
-use paho_mqtt::message;
-use red::traits::Listener;
-use red::{mqtt::MQTTListener, redis::RedisListener};
+use eyes::mqtt::MQTTListener;
+use eyes::traits::Listener;
 use utils::{env_handler, env_keys::PORT};
 
-use axum::{Router, Server};
+use axum::Router;
 use std::net::SocketAddr;
+use tokio::net::TcpListener;
 
 #[tokio::main]
 async fn main() {
@@ -26,10 +26,8 @@ async fn main() {
     });
 
     let app = Router::new().merge(axe::router());
-
     let addr = SocketAddr::from(([0, 0, 0, 0], env_handler::get(PORT).unwrap()));
-    Server::bind(&addr)
-        .serve(app.into_make_service())
-        .await
-        .unwrap();
+    let tcp_listener = TcpListener::bind(&addr).await.unwrap();
+
+    axum::serve(tcp_listener, app).await.unwrap();
 }

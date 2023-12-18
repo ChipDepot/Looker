@@ -1,5 +1,5 @@
 use reqwest::{Client, StatusCode};
-use starduck::application::Application;
+use starduck::Application;
 use url::Url;
 
 use crate::env_handler;

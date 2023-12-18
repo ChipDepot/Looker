@@ -2,7 +2,7 @@ extern crate redis;
 
 use crate::{
     app::traits::Processor,
-    red::traits::Listener,
+    eyes::traits::Listener,
     utils::{
         env_handler,
         env_keys::{CHANNEL, REDIS_URL, RETRY_CONNECTION_INTERVAL},
@@ -47,7 +47,7 @@ impl RedisListener {
 impl Listener for RedisListener {
     type K = RedisError;
 
-    fn listen<T: Processor>(&mut self, obj: &mut T) -> Result<(), Self::K> {
+    fn listen<T: Processor>(&mut self, _obj: &mut T) -> Result<(), Self::K> {
         let duration = env_handler::get::<u64>(RETRY_CONNECTION_INTERVAL).unwrap_or(10);
         let queue_channel = env_handler::get::<String>(CHANNEL)
             .unwrap_or_else(|err| panic!("Missing env var {}: {}", CHANNEL, err));
@@ -74,7 +74,7 @@ impl Listener for RedisListener {
             })?;
 
             info!("New message from redis: {}", &message);
-            obj.process_message(&message);
+            // obj.process_message(&message);
         }
     }
 }

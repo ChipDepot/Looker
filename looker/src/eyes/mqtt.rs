@@ -5,7 +5,7 @@ use paho_mqtt::{errors::Error, AsyncClient, ConnectOptionsBuilder};
 
 use crate::{
     app::traits::Processor,
-    red::traits::Listener,
+    eyes::traits::Listener,
     utils::{
         env_handler,
         env_keys::{
@@ -62,7 +62,7 @@ impl MQTTListener {
 impl Listener for MQTTListener {
     type K = Error;
 
-    fn listen<T: Processor>(&mut self, _obj: &mut T) -> Result<(), Self::K> {
+    fn listen<T: Processor>(&mut self, obj: &mut T) -> Result<(), Self::K> {
         let _duration = env_handler::get(RETRY_CONNECTION_INTERVAL).unwrap_or(10);
         let channel: String = env_handler::get(CHANNEL).unwrap();
 
@@ -70,8 +70,8 @@ impl Listener for MQTTListener {
         self.connection.subscribe(&channel, 1);
 
         loop {
-            let received = match reciever.recv() {
-                Ok(Some(msg)) => msg,
+            match reciever.recv() {
+                Ok(Some(msg)) => obj.process_message(msg),
                 Ok(None) => {
                     warn!("Error when receiving message: got 'None' instead of Message");
                     continue;
@@ -82,8 +82,8 @@ impl Listener for MQTTListener {
                 }
             };
 
-            info!("message received from topic: `{}`", received.topic());
-            info!("message: `{}`", received.payload_str());
+            // info!("message received from topic: `{}`", received.topic());
+            // info!("message: `{}`", received.payload_str());
         }
     }
 }
