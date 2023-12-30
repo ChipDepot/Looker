@@ -9,7 +9,7 @@ pub(crate) async fn get_location_context() -> Result<Application, reqwest::Error
     let duration = env_handler::get(RETRY_CONNECTION_INTERVAL).unwrap_or(10);
     let app_name = env_handler::get::<String>(APP_NAME).unwrap();
     let bran_endpoint = match env_handler::get::<Url>(BRAN_URL) {
-        Ok(url) => url.join(&app_name).unwrap(),
+        Ok(url) => url.join(&format!("apps/{app_name}")).unwrap(),
         Err(err) => panic!("Failed to get bran URL: {}", err),
     };
 

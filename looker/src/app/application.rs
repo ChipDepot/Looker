@@ -3,7 +3,7 @@ use serde_json::json;
 
 use super::traits::Processor;
 
-use starduck::{traits::UpdateState, Application, SCMessage};
+use starduck::{traits::UpdateStateFrom, Application, SCMessage};
 
 impl Processor for Application {
     fn process_message(&mut self, message: Message) {
@@ -31,9 +31,9 @@ impl Processor for Application {
         //     serde_json::to_string_pretty(&json!(self.locations)).unwrap()
         // );
 
-        match self.update_state(&sc_message) {
+        match self.update_state_from(&sc_message) {
             Ok(_) => info!("Updated state."),
-            Err(_) => todo!(),
+            Err(e) => error!("{e}"),
         };
     }
 }
