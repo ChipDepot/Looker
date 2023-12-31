@@ -4,8 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-# starduck = "0.1"
-starduck = { path = "../../StarDuck/starduck" }
+starduck = "0.1"
 
 project-root = "0.2.2"
 dotenv = "0.15"
