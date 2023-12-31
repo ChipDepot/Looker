@@ -1,15 +1,15 @@
 use reqwest::{Client, StatusCode};
-use starduck::application::Application;
+use starduck::Application;
 use url::Url;
 
-use crate::env_handler;
-use crate::utils::env_keys::{APP_NAME, BRAN_URL, RETRY_CONNECTION_INTERVAL};
+use crate::utils::get;
+use crate::utils::{APP_NAME, BRAN_URL, RETRY_CONNECTION_INTERVAL};
 
-pub(crate) async fn get_location_context() -> Result<Application, reqwest::Error> {
-    let duration = env_handler::get(RETRY_CONNECTION_INTERVAL).unwrap_or(10);
-    let app_name = env_handler::get::<String>(APP_NAME).unwrap();
-    let bran_endpoint = match env_handler::get::<Url>(BRAN_URL) {
-        Ok(url) => url.join(&app_name).unwrap(),
+pub async fn get_location_context() -> Result<Application, reqwest::Error> {
+    let duration = get(RETRY_CONNECTION_INTERVAL).unwrap_or(10);
+    let app_name = get::<String>(APP_NAME).unwrap();
+    let bran_endpoint = match get::<Url>(BRAN_URL) {
+        Ok(url) => url.join(&format!("apps/{app_name}")).unwrap(),
         Err(err) => panic!("Failed to get bran URL: {}", err),
     };
 
@@ -29,7 +29,7 @@ pub(crate) async fn get_location_context() -> Result<Application, reqwest::Error
                 StatusCode::NOT_FOUND => {
                     info!(
                         "Waiting for Location Context for app {} from {}",
-                        env_handler::get::<String>(APP_NAME).unwrap(),
+                        get::<String>(APP_NAME).unwrap(),
                         &bran_endpoint
                     );
                 }

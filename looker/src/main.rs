@@ -1,35 +1,64 @@
 mod app;
 mod axe;
-mod red;
+mod eyes;
 mod utils;
 
 #[macro_use]
 extern crate log;
-use paho_mqtt::message;
-use red::traits::Listener;
-use red::{mqtt::MQTTListener, redis::RedisListener};
-use utils::{env_handler, env_keys::PORT};
 
-use axum::{Router, Server};
-use std::net::SocketAddr;
+use std::{net::SocketAddr, process::exit, sync::Arc};
+
+use axum::{Extension, Router};
+use tokio::{net::TcpListener, sync::Mutex};
+
+use crate::{
+    eyes::MQTTListener,
+    eyes::{clock, Listener},
+    utils::PORT,
+    utils::{get, load_env},
+};
 
 #[tokio::main]
 async fn main() {
     // Start the logger and load the env variables
     env_logger::init();
-    env_handler::load_env(None);
+    load_env(None);
 
-    let mut application = axe::get_location_context().await.unwrap();
+    // Create the application and Arc<Mutex<T>> it
+    let application = axe::get_location_context().await.unwrap();
+    let mut arc_app = Arc::new(Mutex::new(application));
+    let mut arc_clone = Arc::clone(&arc_app);
+    let arc_axum_clone = Arc::clone(&arc_app);
 
-    tokio::spawn(async move {
-        let _ = MQTTListener::new().await.listen(&mut application);
-    });
+    let clock_task = tokio::spawn(async move { clock(&mut arc_app).await });
 
-    let app = Router::new().merge(axe::router());
+    let mqtt_listener_task =
+        tokio::spawn(async move { MQTTListener::new().await.listen(&mut arc_clone).await });
+    // listener.
 
-    let addr = SocketAddr::from(([0, 0, 0, 0], env_handler::get(PORT).unwrap()));
-    Server::bind(&addr)
-        .serve(app.into_make_service())
-        .await
-        .unwrap();
+    let app = Router::new()
+        .nest_service("/", axe::extras_router())
+        .nest("/", axe::router())
+        .layer(Extension(arc_axum_clone));
+    let addr = SocketAddr::from(([0, 0, 0, 0], get(PORT).unwrap()));
+    let tcp_listener = TcpListener::bind(&addr).await.unwrap();
+
+    info!("Starting server at {}", addr);
+
+    let _axum_server = axum::serve(
+        tcp_listener,
+        app.into_make_service_with_connect_info::<SocketAddr>(),
+    )
+    .await;
+
+    let _ = tokio::select! {
+        _ = clock_task =>{
+            error!("Clock task finished unexpectedly");
+            exit(-1);
+        },
+        _ = mqtt_listener_task =>{
+            error!("MQTTListener task finished unexpectedly");
+            exit(-1);
+        },
+    };
 }

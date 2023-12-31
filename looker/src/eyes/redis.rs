@@ -1,16 +1,17 @@
 extern crate redis;
 
+use std::{sync::Arc, thread, time};
+
+use anyhow::Result;
+use log::info;
+use tokio::sync::Mutex;
+
 use crate::{
     app::traits::Processor,
-    red::traits::Listener,
-    utils::{
-        env_handler,
-        env_keys::{CHANNEL, REDIS_URL, RETRY_CONNECTION_INTERVAL},
-    },
+    eyes::traits::Listener,
+    utils::get,
+    utils::{CHANNEL, REDIS_URL, RETRY_CONNECTION_INTERVAL},
 };
-use log::info;
-use redis::RedisError;
-use std::{thread, time};
 
 pub struct RedisListener {
     connection: redis::Connection,
@@ -18,7 +19,7 @@ pub struct RedisListener {
 
 impl RedisListener {
     pub fn new() -> Self {
-        let duration = env_handler::get(RETRY_CONNECTION_INTERVAL).unwrap_or(10);
+        let duration = get(RETRY_CONNECTION_INTERVAL).unwrap_or(10);
 
         // Get the redis URL from the env vars
         let redis_url = dotenv::var(REDIS_URL).unwrap_or_else(|err| panic!("Missing {}", err));
@@ -44,12 +45,11 @@ impl RedisListener {
     }
 }
 
+#[async_trait::async_trait]
 impl Listener for RedisListener {
-    type K = RedisError;
-
-    fn listen<T: Processor>(&mut self, obj: &mut T) -> Result<(), Self::K> {
-        let duration = env_handler::get::<u64>(RETRY_CONNECTION_INTERVAL).unwrap_or(10);
-        let queue_channel = env_handler::get::<String>(CHANNEL)
+    async fn listen<T: Processor>(&mut self, _obj: &mut Arc<Mutex<T>>) -> Result<()> {
+        let duration = get::<u64>(RETRY_CONNECTION_INTERVAL).unwrap_or(10);
+        let queue_channel = get::<String>(CHANNEL)
             .unwrap_or_else(|err| panic!("Missing env var {}: {}", CHANNEL, err));
 
         let mut pubsub_con = self.connection.as_pubsub();
@@ -74,7 +74,7 @@ impl Listener for RedisListener {
             })?;
 
             info!("New message from redis: {}", &message);
-            obj.process_message(&message);
+            // obj.process_message(&message);
         }
     }
 }
