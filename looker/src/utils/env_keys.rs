@@ -7,3 +7,4 @@ pub(crate) const RETRY_CONNECTION_INTERVAL: &str = "RETRY_CONNECTION_INTERVAL";
 pub(crate) const MQTT_URL: &str = "MQTT_URL";
 pub(crate) const MIN_RETRY_INTERVAL: &str = "MIN_RETRY_INTERVAL";
 pub(crate) const MAX_RETRY_INTERVAL: &str = "MAX_RETRY_INTERVAL";
+pub(crate) const TIMEOUT_CHECK: &str = "TIMEOUT_CHECK";

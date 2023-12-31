@@ -1,7 +1,13 @@
+use std::sync::Arc;
+
 use crate::app::traits::Processor;
 
-pub trait Listener {
-    type K;
+use anyhow::Result;
+use tokio::sync::Mutex;
 
-    fn listen<T: Processor>(&mut self, obj: &mut T) -> Result<(), Self::K>;
+#[async_trait::async_trait]
+pub trait Listener {
+    async fn listen<T>(&mut self, obj: &mut Arc<Mutex<T>>) -> Result<()>
+    where
+        T: Processor + Send;
 }
