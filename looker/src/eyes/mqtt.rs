@@ -6,12 +6,12 @@ use anyhow::Result;
 use paho_mqtt::{AsyncClient, ConnectOptionsBuilder};
 use tokio::sync::Mutex;
 
-use crate::{
-    app::traits::Processor,
-    eyes::traits::Listener,
-    utils::get,
-    utils::{CHANNEL, MAX_RETRY_INTERVAL, MIN_RETRY_INTERVAL, MQTT_URL, RETRY_CONNECTION_INTERVAL},
+use starduck::utils::get;
+use starduck::utils::{
+    CHANNEL, MAX_RETRY_INTERVAL, MIN_RETRY_INTERVAL, MQTT_URL, RETRY_CONNECTION_INTERVAL,
 };
+
+use crate::{app::traits::Processor, eyes::traits::Listener};
 
 pub struct MQTTListener {
     pub connection: AsyncClient,

@@ -2,6 +2,7 @@ mod contexter;
 mod requester;
 
 pub(crate) use contexter::get_location_context;
+pub(crate) use requester::send_context;
 
 use std::path::PathBuf;
 

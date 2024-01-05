@@ -6,12 +6,10 @@ use anyhow::Result;
 use log::info;
 use tokio::sync::Mutex;
 
-use crate::{
-    app::traits::Processor,
-    eyes::traits::Listener,
-    utils::get,
-    utils::{CHANNEL, REDIS_URL, RETRY_CONNECTION_INTERVAL},
-};
+use starduck::utils::get;
+use starduck::utils::{CHANNEL, REDIS_URL, RETRY_CONNECTION_INTERVAL};
+
+use crate::{app::traits::Processor, eyes::traits::Listener};
 
 pub struct RedisListener {
     connection: redis::Connection,

@@ -1,9 +1,10 @@
+use anyhow::Result;
 use reqwest::{Client, StatusCode};
 use starduck::Application;
 use url::Url;
 
-use crate::utils::get;
-use crate::utils::{APP_NAME, BRAN_URL, RETRY_CONNECTION_INTERVAL};
+use starduck::utils::get;
+use starduck::utils::{APP_NAME, BRAN_URL, RETRY_CONNECTION_INTERVAL};
 
 pub async fn get_location_context() -> Result<Application, reqwest::Error> {
     let duration = get(RETRY_CONNECTION_INTERVAL).unwrap_or(10);
