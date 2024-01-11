@@ -56,7 +56,7 @@ pub async fn send_context(app_arc: Arc<Mutex<Application>>) -> Result<()> {
 
         let client = Client::new();
 
-        if let Ok(k) = client.post(url.to_owned()).json(&app).send().await {
+        if let Ok(k) = client.put(url.to_owned()).json(&app).send().await {
             if k.status() != ReqStatusCode::OK {
                 error!("Recived {} from {}", k.status(), url.to_string());
                 continue;
