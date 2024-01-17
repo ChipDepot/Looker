@@ -1,4 +1,5 @@
 use std::net::SocketAddr;
+use std::str::FromStr;
 use std::sync::Arc;
 use std::thread::sleep;
 use std::time::Duration;
@@ -13,6 +14,7 @@ use url::Url;
 use starduck::utils::get;
 use starduck::utils::{BRAN_URL, FORWARD_INTERVAL};
 
+const BRAN_DEFAULT: &str = "http://bran:8014";
 const DEFAULT_FORWARD_INTERVAL: u64 = 120;
 
 use axum::{
@@ -44,10 +46,10 @@ pub async fn send_context(app_arc: Arc<Mutex<Application>>) -> Result<()> {
 
     let app_name = app_arc.lock().await.name.clone();
 
-    let url = get::<Url>(BRAN_URL)
-        .unwrap()
-        .join(&format!("apps/{app_name}"))
-        .unwrap();
+    let bran_endpoint = match get::<Url>(BRAN_URL) {
+        Ok(url) => url.join(&format!("/apps/{app_name}")).unwrap(),
+        Err(_) => Url::from_str(&format!("{BRAN_DEFAULT}/apps/{app_name}")).unwrap(),
+    };
 
     loop {
         sleep(sleep_interval);
@@ -56,13 +58,13 @@ pub async fn send_context(app_arc: Arc<Mutex<Application>>) -> Result<()> {
 
         let client = Client::new();
 
-        if let Ok(k) = client.put(url.to_owned()).json(&app).send().await {
+        if let Ok(k) = client.put(bran_endpoint.clone()).json(&app).send().await {
             if k.status() != ReqStatusCode::OK {
-                error!("Recived {} from {}", k.status(), url.to_string());
+                error!("Recived {} from {}", k.status(), bran_endpoint.to_string());
                 continue;
             }
         };
 
-        info!("Updated application {app_name} has been POSTed to {url}");
+        info!("Updated application {app_name} has been POSTed to {bran_endpoint}");
     }
 }

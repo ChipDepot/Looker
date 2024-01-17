@@ -34,8 +34,11 @@ async fn main() {
 
     let clock_task = tokio::spawn(async move { clock(&mut clock_arc).await });
 
-    let mqtt_listener_task =
-        tokio::spawn(async move { MQTTListener::new().await.listen(&mut listener_arc).await });
+    let mqtt_listener_task = tokio::spawn(async move {
+        let _ = MQTTListener::new().await.listen(&mut listener_arc).await;
+        error!("MQTTListener task died!");
+        std::process::exit(-1);
+    });
 
     let requester_task = tokio::spawn(async move { axe::send_context(requester_arc).await });
 

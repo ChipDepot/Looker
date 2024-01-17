@@ -14,8 +14,8 @@ pub async fn get_location_context() -> Result<Application> {
     let duration = get(RETRY_CONNECTION_INTERVAL).unwrap_or(10);
     let app_name = get::<String>(APP_NAME).unwrap();
     let bran_endpoint = match get::<Url>(BRAN_URL) {
-        Ok(url) => url.join(&format!("apps/{app_name}")).unwrap(),
-        Err(_) => Url::from_str(&format!("{BRAN_DEFAULT}apps/{app_name}")).unwrap(),
+        Ok(url) => url.join(&format!("/apps/{app_name}")).unwrap(),
+        Err(_) => Url::from_str(&format!("{BRAN_DEFAULT}/apps/{app_name}")).unwrap(),
     };
 
     let client = Client::new();

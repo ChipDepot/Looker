@@ -11,6 +11,9 @@ use starduck::utils::{
     CHANNEL, MAX_RETRY_INTERVAL, MIN_RETRY_INTERVAL, MQTT_URL, RETRY_CONNECTION_INTERVAL,
 };
 
+const DEFAULT_MQTT_URL: &str = "tcp://mqtt_broker:1883/";
+const DEFAULT_CHANNEL: &str = "device-messages";
+
 use crate::{app::traits::Processor, eyes::traits::Listener};
 
 pub struct MQTTListener {
@@ -22,7 +25,7 @@ impl MQTTListener {
         let min_retry_interval = Duration::from_secs(get(MIN_RETRY_INTERVAL).unwrap_or(1));
         let max_retry_interval = Duration::from_secs(get(MAX_RETRY_INTERVAL).unwrap_or(16));
         let duration = get(RETRY_CONNECTION_INTERVAL).unwrap_or(10);
-        let mqtt_url: String = get(MQTT_URL).unwrap();
+        let mqtt_url: String = get(MQTT_URL).unwrap_or(DEFAULT_MQTT_URL.to_owned());
 
         info!("Using URL {}", &mqtt_url);
         let mqtt_client = AsyncClient::new(mqtt_url).unwrap();
@@ -59,7 +62,7 @@ impl Listener for MQTTListener {
         T: Processor + Send,
     {
         // let _duration = env_handler::get(RETRY_CONNECTION_INTERVAL).unwrap_or(10);
-        let channel: String = get(CHANNEL).unwrap();
+        let channel: String = get(CHANNEL).unwrap_or(DEFAULT_CHANNEL.to_owned());
 
         let reciever = self.connection.start_consuming();
         self.connection.subscribe(&channel, 1);
