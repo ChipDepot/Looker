@@ -10,8 +10,10 @@ use std::{net::SocketAddr, process::exit, sync::Arc};
 use axum::{Extension, Router};
 use tokio::{net::TcpListener, sync::Mutex};
 
+use starduck::utils;
 use starduck::utils::PORT;
-use starduck::utils::{get, load_env};
+
+const DEFAULT_PORT: u16 = 3000;
 
 use crate::{
     eyes::MQTTListener,
@@ -20,9 +22,8 @@ use crate::{
 
 #[tokio::main]
 async fn main() {
-    // Start the logger and load the env variables
+    // Start the logger
     env_logger::init();
-    load_env(None);
 
     // Create the application and Arc<Mutex<T>> it
     let application = axe::get_location_context().await.unwrap();
@@ -42,7 +43,7 @@ async fn main() {
         .nest_service("/", axe::extras_router())
         .nest("/", axe::router())
         .layer(Extension(axum_arc));
-    let addr = SocketAddr::from(([0, 0, 0, 0], get(PORT).unwrap()));
+    let addr = SocketAddr::from(([0, 0, 0, 0], utils::get(PORT).unwrap_or(DEFAULT_PORT)));
     let tcp_listener = TcpListener::bind(&addr).await.unwrap();
 
     info!("Starting server at {}", addr);

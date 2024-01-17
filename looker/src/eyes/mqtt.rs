@@ -19,12 +19,8 @@ pub struct MQTTListener {
 
 impl MQTTListener {
     pub async fn new() -> Self {
-        let min_retry_interval = Duration::from_secs(
-            get(MIN_RETRY_INTERVAL).expect("Missing keyword MIN_RETRY_INTERVAL on .env file"),
-        );
-        let max_retry_interval = Duration::from_secs(
-            get(MAX_RETRY_INTERVAL).expect("Missing keyword MIN_RETRY_INTERVAL on .env file"),
-        );
+        let min_retry_interval = Duration::from_secs(get(MIN_RETRY_INTERVAL).unwrap_or(1));
+        let max_retry_interval = Duration::from_secs(get(MAX_RETRY_INTERVAL).unwrap_or(16));
         let duration = get(RETRY_CONNECTION_INTERVAL).unwrap_or(10);
         let mqtt_url: String = get(MQTT_URL).unwrap();
 

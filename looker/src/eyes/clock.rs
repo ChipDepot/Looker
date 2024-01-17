@@ -8,9 +8,10 @@ use tokio::time::sleep;
 use anyhow::Result;
 
 use starduck::traits::WithOffset;
+use starduck::utils;
 use starduck::utils::TIMEOUT_CHECK;
 
-use crate::{app::traits::Processor, get};
+use crate::app::traits::Processor;
 
 const DEFAULT_TIMEOUT_CHECK: u64 = 10;
 
@@ -18,7 +19,7 @@ pub async fn clock<T>(obj: &mut Arc<Mutex<T>>) -> Result<()>
 where
     T: Processor + UpdateStateFrom<NaiveDateTime>,
 {
-    let timeout_check = get(TIMEOUT_CHECK).unwrap_or_else(|e| {
+    let timeout_check = utils::get(TIMEOUT_CHECK).unwrap_or_else(|e| {
         error!("Failed to fetch timeout check value: {e}");
         warn!("Defaulting timeout_check to {DEFAULT_TIMEOUT_CHECK}");
 
