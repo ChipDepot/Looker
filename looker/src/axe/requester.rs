@@ -58,13 +58,16 @@ pub async fn send_context(app_arc: Arc<Mutex<Application>>) -> Result<()> {
 
         let client = Client::new();
 
-        if let Ok(k) = client.put(bran_endpoint.clone()).json(&app).send().await {
-            if k.status() != ReqStatusCode::OK {
-                error!("Recived {} from {}", k.status(), bran_endpoint.to_string());
+        match client.put(bran_endpoint.clone()).json(&app).send().await {
+            Ok(k) => {
+                if k.status() != ReqStatusCode::OK {
+                    error!("Recived {} from {}", k.status(), bran_endpoint.to_string());
+                    continue;
+                }
+                info!("Updated application {app_name} has been POSTed to {bran_endpoint}");
                 continue;
             }
+            Err(e) => info!("recieved {e} from {bran_endpoint}"),
         };
-
-        info!("Updated application {app_name} has been POSTed to {bran_endpoint}");
     }
 }
